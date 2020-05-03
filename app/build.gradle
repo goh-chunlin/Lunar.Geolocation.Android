@@ -2,6 +2,10 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 
+def apiKeyPropertiesFile = rootProject.file("apikey.properties")
+def apiKeyProperties = new Properties()
+apiKeyProperties.load(new FileInputStream(apiKeyPropertiesFile))
+
 android {
     compileSdkVersion 29
     buildToolsVersion "29.0.3"
@@ -14,6 +18,13 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        // Storing Secret Keys in Android
+        //
+        // Reference:
+        // 1. https://github.com/codepath/android_guides/wiki/Storing-Secret-Keys-in-Android#hidden-in-buildconfigs
+        buildConfigField("String", "AZURE_EVENT_HUB_CONNECTION_STRING", apiKeyProperties['AZURE_EVENT_HUB_CONNECTION_STRING'])
+        buildConfigField("String", "AZURE_EVENT_HUB_NAME", apiKeyProperties['AZURE_EVENT_HUB_NAME'])
     }
 
     buildTypes {
@@ -21,6 +32,15 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = "1.8"
     }
 
     // This is to remove the error saying there are more than one file was found with OS independent path 'META-INF/LICENSE'

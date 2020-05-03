@@ -1,9 +1,10 @@
 package chunlin.lunar.geolocation
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
-
+import androidx.appcompat.app.AppCompatActivity
+import com.azure.messaging.eventhubs.EventData
+import com.azure.messaging.eventhubs.EventHubClientBuilder
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -11,9 +12,11 @@ import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
 
+
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     private lateinit var mMap: GoogleMap
+    private lateinit var recentLatitudeAndLongitudeRecords : MutableList<String>
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,6 +25,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         val mapFragment = supportFragmentManager
                 .findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
+
+        recentLatitudeAndLongitudeRecords = mutableListOf<String>()
     }
 
     /**
@@ -43,12 +48,42 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         mMap.getUiSettings().setZoomControlsEnabled(true)
         mMap.setOnMapClickListener { latitudeAndLongitude ->
             mMap.animateCamera(CameraUpdateFactory.newLatLng(latitudeAndLongitude))
+
+            if (recentLatitudeAndLongitudeRecords.count() >= 10) {
+                sendLatitudeAndLongitudeDataToAzure()
+
+                recentLatitudeAndLongitudeRecords.clear()
+            }
+
+            recentLatitudeAndLongitudeRecords.add(latitudeAndLongitude.latitude.toString() + "," + latitudeAndLongitude.longitude)
+
             showToast(latitudeAndLongitude)
         }
     }
 
-    fun showToast(latitudeAndLongitude: LatLng)
-    {
+    private fun sendLatitudeAndLongitudeDataToAzure() {
+        // Send events to or receive events from Azure Event Hubs (azure-messaging-eventhubs)
+        //
+        // Reference:
+        // 1. https://docs.microsoft.com/en-us/azure/event-hubs/get-started-java-send-v2
+        var producer = EventHubClientBuilder()
+            .connectionString(BuildConfig.AZURE_EVENT_HUB_CONNECTION_STRING, BuildConfig.AZURE_EVENT_HUB_NAME)
+            .buildProducerClient()
+
+        val batch = producer.createBatch()
+
+        recentLatitudeAndLongitudeRecords.forEach {
+            batch.tryAdd(EventData(it))
+        }
+
+        if (batch.count > 0) {
+            producer.send(batch)
+        }
+
+        producer.close()
+    }
+
+    private fun showToast(latitudeAndLongitude: LatLng) {
         Toast.makeText(
             this@MapsActivity,
             "Position: (" + latitudeAndLongitude.latitude + ", " + latitudeAndLongitude.longitude + ")",
