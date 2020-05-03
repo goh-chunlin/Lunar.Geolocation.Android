@@ -34,6 +34,10 @@ android {
         }
     }
 
+    // Solve the problem of java.lang.NoSuchMethodError: No static method metafactory
+    //
+    // Reference:
+    // 1. https://stackoverflow.com/a/59448917/1177328
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8

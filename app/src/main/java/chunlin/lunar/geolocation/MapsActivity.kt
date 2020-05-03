@@ -62,7 +62,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
     }
 
     private fun sendLatitudeAndLongitudeDataToAzure() {
-        // Send events to or receive events from Azure Event Hubs (azure-messaging-eventhubs)
+        // Send events to Azure Event Hubs (azure-messaging-eventhubs)
         //
         // Reference:
         // 1. https://docs.microsoft.com/en-us/azure/event-hubs/get-started-java-send-v2
