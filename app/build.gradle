@@ -8,7 +8,7 @@ android {
 
     defaultConfig {
         applicationId "chunlin.lunar.geolocation"
-        minSdkVersion 16
+        minSdkVersion 26
         targetSdkVersion 29
         versionCode 1
         versionName "1.0"
@@ -23,6 +23,16 @@ android {
         }
     }
 
+    // This is to remove the error saying there are more than one file was found with OS independent path 'META-INF/LICENSE'
+    //
+    // References:
+    // 1. https://stackoverflow.com/a/48231124/1177328
+    // 2. https://groups.google.com/forum/#!topic/Android-ndk/vfMfld5FY7A
+    packagingOptions {
+        pickFirst 'META-INF/LICENSE.md'
+        pickFirst 'META-INF/NOTICE.md'
+    }
+
 }
 
 dependencies {
@@ -31,6 +41,7 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.0.2'
     implementation 'androidx.core:core-ktx:1.0.2'
     implementation 'com.google.android.gms:play-services-maps:17.0.0'
+    implementation 'com.azure:azure-messaging-eventhubs:5.0.3'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
