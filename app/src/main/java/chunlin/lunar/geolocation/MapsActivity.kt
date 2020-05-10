@@ -1,6 +1,7 @@
 package chunlin.lunar.geolocation
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.azure.messaging.eventhubs.EventData
@@ -11,6 +12,11 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+
+
+
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
@@ -47,7 +53,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
         mMap.getUiSettings().setZoomControlsEnabled(true)
         mMap.setOnMapClickListener { latitudeAndLongitude ->
-            mMap.animateCamera(CameraUpdateFactory.newLatLng(latitudeAndLongitude))
+            val selectedPoint = GeolocationData("Android Data", latitudeAndLongitude.latitude, latitudeAndLongitude.longitude)
+
+            val gson = GsonBuilder()
+                .excludeFieldsWithoutExposeAnnotation()
+                .create()
+
+            recentLatitudeAndLongitudeRecords.add(gson.toJson(selectedPoint))
+
+            Log.d("Geolocation", gson.toJson(selectedPoint))
 
             if (recentLatitudeAndLongitudeRecords.count() >= 10) {
                 sendLatitudeAndLongitudeDataToAzure()
@@ -55,9 +69,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
                 recentLatitudeAndLongitudeRecords.clear()
             }
 
-            recentLatitudeAndLongitudeRecords.add(latitudeAndLongitude.latitude.toString() + "," + latitudeAndLongitude.longitude)
-
-            showToast(latitudeAndLongitude)
+            mMap.addMarker(MarkerOptions().position(latitudeAndLongitude).title(selectedPoint.geolocationDisplay))
         }
     }
 
